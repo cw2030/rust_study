@@ -100,3 +100,53 @@ fn main() {
 }
 ```
 
+#### trait多态性
+
+在Rust中可以通过trait类型实现的特殊形式实现真正的多态性。
+
+##### 静态分发
+
+当在编译期决定要调用的方法时，被称为静态分发或早期绑定。在Rust中，泛型展示了这种形式的分发，因为即使泛型函数可以接收许多参数，也会在编译期使用具体类型生成函数的专用副本。
+
+##### 动态分发
+
+在面向对象编程中，有时直到运行时才能确定调用的方法，这是因为具体类型被隐藏了，并且只有接口方法可用于调用该类型。
+
+在Rust中通过`＆dyn trait`来实现，比如
+
+```rust
+pub trait Area {
+    fn area(&self) -> f32;
+}
+struct Square(f32);
+struct  Rectangle(f32,f32);
+impl Area for Square {
+    fn area(&self) -> f32{
+        self.0 * self.0
+    }
+}
+impl Area for Rectangle {
+    fn area(&self) -> f32 {
+        self.0 * self.1
+    }
+}
+fn main() {
+    let square = Square(2.3);
+    let rectange = Rectangle(2.3,3.1);
+    let v: Vec<&dyn Area> = vec![&square, &rectange];
+}
+
+```
+
+通过`dyn`关键字声明Vec接收动态Area类型，但是由Rust编译器要求声明的对象类型大小不能是未知的，所以这里只能接收`&dyn Area`，或者使用其它智能指针类型，如：Box, Rc, Arc等。
+
+另外也可以把dyn trait作为函数参数使用的形式，如下：
+
+```rust
+fn show_me(item: &dyn Display) {
+    println!("{}", item);
+}
+```
+
+当然也需要是`&dyn trait`的形式。
+
